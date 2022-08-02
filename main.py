@@ -65,7 +65,28 @@ nickname = input("Choose your nickname : ").strip()
 while not nickname:
     nickname = input("Your nickname should not be empty : ").strip()
 my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
+from sys import platform
+if platform == "linux" or platform == "linux2":
+    #Linux
+    #TODO
+    pass
+elif platform == "darwin":
+    # OS X
+    devices = []
+    print("Looking for open server. . .")
+    for device in os.popen('arp -a'):
+        devices.append(device.split()[1])  # .strip("()"))
+    # print(devices)
+elif platform == "win32":
+    # Windows
+    devices = []
+    print("Looking for open server. . .")
+    for device in os.popen('arp -a'):
+        try:
+            devices.append(device.split()[1])  # .strip("()"))
+        except IndexError as error:
+            logger.info(error)
+    # print(devices)
 devices = []
 print("Looking for open server. . .")
 for device in os.popen('arp -a'):
