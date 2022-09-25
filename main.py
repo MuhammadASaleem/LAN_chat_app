@@ -1,51 +1,12 @@
-# # import
-# import socket
-# import threading
-#
-# # Settings
-#
-# PORT = 8000
-# ADDRESS = "localhost" # Same as "127.0.1.1"
-#
-# "Creating the socket object"
-# sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#
-# "Connecting"
-# sock.connect((ADDRESS, PORT))
-#
-# msg = "msg"
-# # while msg != "/quit":
-# #     msg = input("Msg: >>> ")
-# #     # if msg == "/quit":
-# #     #     break
-# #     sock.send(msg.encode())
-#
-# def thread_sending():
-#     while True:
-#         msg = input("Msg: >>> ")
-#         sock.send(msg.encode())
-#
-#
-# def thread_receiving():
-#     while True:
-#         message = sock.recv(1024).decode()
-#         print(message)
-#
-#
-# thread_send = threading.Thread(target=thread_sending)
-# thread_receive = threading.Thread(target=thread_receiving)
-#
-# thread_send.start()
-# thread_receive.start()
-
 # client.py
 import socket
 import sys
 import threading
 import os
 import logging
+import time
+
 import server
-from time import sleep
 
 # Logging
 
@@ -65,55 +26,67 @@ sever = server.Server()
 nickname = input("Choose your nickname : ").strip()
 while not nickname:
     nickname = input("Your nickname should not be empty : ").strip()
+
+# Initializing Socket
 my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-from sys import platform
-# if platform == "linux" or platform == "linux2":
-#     #Linux
-#     #TODO
-#     pass
-# elif platform == "darwin":
-#     # OS X
-#     devices = []
-#     print("Looking for open server. . .")
-#     for device in os.popen('arp -a'):
-#         devices.append(device.split()[1])  # .strip("()"))
-#     # print(devices)
-# elif platform == "win32":
-#     # Windows
-#     devices = []
-#     print("Looking for open server. . .")
-#     for device in os.popen('arp -a'):
-#         try:
-#             devices.append(device.split()[1])  # .strip("()"))
-#         except IndexError as error:
-#             logger.info(error)
-#     # print(devices)
+
+# Gets Servers
 devices = []
 print("Looking for open server. . .")
-for device in os.popen('arp -a'):
-    devices.append(device.split()[1].strip("()"))  # .strip("()"))
-# print(devices)
+for devise in os.popen('arp -a'):
+    devices.append(devise.split()[1].strip("()"))  # .strip("()"))
+
+# Filter
+
+for i in devices:
+    delete = False
+    if not i.startswith('192'):
+        delete = True
+    if i.startswith('224'):
+        delete = True
+    if delete:
+        devices.remove(i)
+
+# Priority
+priority = []
+for i in devices:
+    if i.startswith('192.168.4'):
+        priority.append(i)
+        #devices.remove(i)
+devices = priority #+ devices
+
+# Checks Connectivity
+connectable_device = 'null' # Placeholder
 
 make_server = True
-# host = "192.168.4.24"  # "127.0.1.1"1`
+host = "192.168.4.24"  # "127.0.1.1"
 port = 8000
+itterDevice = 0
+
 for device in devices:
     try:
-        my_socket.connect((device, port))
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((device, port))
         make_server = False
-        print(f"Connected to {device}")
+        connectable_device = device
         break
     except socket.error as error:
-        logger.error(f'No route to {device}')
-        # print(error)
+        logger.error(f'{error} on {device}')
 
+
+# Connects to a Server
 if make_server:
+    print("No open server detected")
+    print("Starting server")
     start_server = threading.Thread(target=sever.accept_loop)
-    # server.accept_loop()
     start_server.start()
-    sleep(1)
+    time.sleep(1)
     my_socket.connect((socket.gethostbyname(socket.gethostname()), port))
     print(f"Connected to {socket.gethostbyname(socket.gethostname())}")
+    #print(f"Connected to {host}")
+else:
+    my_socket.connect((connectable_device, port))
+    print(f"Connected to {connectable_device}")
 
 
 def thread_sending():
