@@ -66,6 +66,7 @@ itterDevice = 0
 for device in devices:
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(0.2)
         s.connect((device, port))
         make_server = False
         connectable_device = device
