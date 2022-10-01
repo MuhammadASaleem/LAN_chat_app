@@ -109,8 +109,21 @@ def thread_receiving():
         if sever.die:
             break
         message = my_socket.recv(1024).decode()
-        print(message)
+        mess_Process(message)
 
+def mess_Process(message):
+    """
+    Takes the message and checks its type (message, command, system)
+    :param message:
+    :return:
+    """
+    if message[6] == '/':
+        message.replace('/', '')
+        message = message.split(' ')
+        print('ugg')
+        if message[2] == '/close':
+            print('closing')
+            sys.exit()
 
 def close():
     print('quitting')
